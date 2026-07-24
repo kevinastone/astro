@@ -137,13 +137,23 @@ async function getViteConfiguration(
 	if (command === 'dev' && options?.devtools) {
 		const vueDevTools = (await import('vite-plugin-vue-devtools')).default;
 		const devToolsOptions = typeof options.devtools === 'object' ? options.devtools : {};
-		plugins.push(
-			configEnvironmentPlugin(),
+		const devToolsPlugins = [
 			vueDevTools({
 				...devToolsOptions,
 				appendTo: VIRTUAL_MODULE_ID,
 			}),
-		);
+		]
+			.flat(2)
+			.filter((p): p is Plugin => !!p && typeof p === 'object' && 'name' in p);
+		// Vue devtools plugins are client-only. In Vite 8's per-environment architecture,
+		// allowing them to run in SSR environments causes crashes because vite:css-post's
+		// buildStart (which initializes its cache) only runs for the client environment
+		// by default, but devtools dependencies (e.g. vite-plugin-vue-inspector's Overlay.vue)
+		// trigger CSS transforms in the SSR environment before that cache is populated.
+		for (const plugin of devToolsPlugins) {
+			plugin.applyToEnvironment ??= (env) => env.name === 'client';
+		}
+		plugins.push(configEnvironmentPlugin(), ...devToolsPlugins);
 	}
 
 	return { plugins };
