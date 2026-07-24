@@ -6975,6 +6975,18 @@ importers:
         specifier: ^4.22.0
         version: 4.22.3
 
+  triage/repro-17494:
+    dependencies:
+      '@astrojs/vue':
+        specifier: workspace:*
+        version: link:../../packages/integrations/vue
+      astro:
+        specifier: workspace:*
+        version: link:../../packages/astro
+      vue:
+        specifier: ^3.5.30
+        version: 3.5.30(typescript@6.0.3)
+
 packages:
 
   '@anthropic-ai/sdk@0.91.1':
