@@ -10,7 +10,10 @@ export const GET: APIRoute = async (ctx) => {
 
 	if (cache) {
 		const cached = await cache.match(ctx.request.url);
-		if (cached) return cached;
+		// Clone the cached response so its headers are mutable. The Cache API
+		// returns responses with immutable (guard: "immutable") headers;
+		// downstream code (e.g. handler.ts) may need to set additional headers.
+		if (cached) return new Response(cached.body, cached);
 	}
 
 	const response = await transform(ctx.request.url, env.IMAGES, env.ASSETS);
